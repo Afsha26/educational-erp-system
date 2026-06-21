@@ -134,7 +134,9 @@ CREATE TABLE IF NOT EXISTS announcements(
     announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     message TEXT NOT NULL,
-    announcement_date TEXT NOT NULL
+    announcement_date TEXT NOT NULL,
+    created_by INTEGER,
+    creator_role TEXT
 )
 """)
 
@@ -155,6 +157,25 @@ CREATE TABLE IF NOT EXISTS student_queries(
         ON DELETE CASCADE
 )
 """)
+
+
+# ==========================
+# HOD table
+# ==========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS hods(
+    hod_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE,
+    full_name TEXT NOT NULL,
+    department TEXT,
+    email TEXT,
+
+    FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+)
+               """)
 
 # ==========================
 # Commit Changes

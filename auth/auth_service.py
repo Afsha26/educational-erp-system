@@ -73,6 +73,26 @@ def authenticate(username, password):
             result["department"] = teacher["department"]
             result["designation"] = teacher["designation"]
             result["email"] = teacher["email"]
+    if role == "HOD":
+
+        cursor.execute("""
+                SELECT
+                    hod_id,
+                    full_name,
+                    department,
+                    email
+                FROM hods
+                WHERE user_id = ?
+            """, (user_id,))
+
+        hod = cursor.fetchone()
+
+        if hod:
+
+            result["hod_id"] = hod["hod_id"]
+            result["full_name"] = hod["full_name"]
+            result["department"] = hod["department"]
+            result["email"] = hod["email"]
     else:
         pass
     conn.close()

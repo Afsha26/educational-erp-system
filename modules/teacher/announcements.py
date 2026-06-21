@@ -62,24 +62,27 @@ def teacher_announcements(user_id):
             cursor = conn.cursor()
 
             cursor.execute(
-                """
-                INSERT INTO announcements
-                (
-                    title,
-                    message,
-                    announcement_date
-                )
-                VALUES (?,?,?)
-                """,
-                (
-                    title,
-                    message,
-                    datetime.now().strftime(
-                        "%Y-%m-%d %H:%M"
+                    """
+                    INSERT INTO announcements
+                    (
+                        title,
+                        message,
+                        announcement_date,
+                        created_by,
+                        creator_role
                     )
-                )
+                    VALUES (?,?,?,?,?)
+                    """,
+                    (
+                        title,
+                        message,
+                        datetime.now().strftime(
+                            "%Y-%m-%d %H:%M"
+                        ),
+                        user_id,
+                        "Teacher"
+                    )
             )
-
             conn.commit()
 
             st.success(
@@ -139,7 +142,9 @@ def teacher_announcements(user_id):
             announcement_id,
             title,
             message,
-            announcement_date
+            announcement_date,
+            creator_role,
+            created_by
         FROM announcements
         ORDER BY announcement_id DESC
         """,
@@ -180,6 +185,14 @@ def teacher_announcements(user_id):
                         margin-bottom:10px;
                     ">
                         {row['message']}
+                    </p>
+                    
+                    <p style="
+                        color:#9043B7;
+                        font-weight:bold;
+                    ">
+                        Posted By:
+                        {row['creator_role']}
                     </p>
 
                     <small style="

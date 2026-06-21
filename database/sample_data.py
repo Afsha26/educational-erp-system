@@ -128,15 +128,6 @@ VALUES(?,?,?,?,?)
 """, teachers)
 
 # ==========================
-# HOD User
-# ==========================
-
-cursor.execute("""
-INSERT INTO users(username, password, role)
-VALUES (?, ?, ?)
-""", ("hod1", "123", "HOD"))
-
-# ==========================
 # Principal User
 # ==========================
 
@@ -286,6 +277,47 @@ INSERT INTO attendance
 )
 VALUES (?,?,?)
 """, attendance_records)
+
+
+# ==========================
+# HOD Users and Records
+# ==========================
+
+hod_accounts = [
+    ("hod_cse", "123", "HOD"),
+    ("hod_it", "123", "HOD"),
+    ("hod_ece", "123", "HOD"),
+    ("hod_mechanical", "123", "HOD"),
+    ("hod_civil", "123", "HOD")
+]
+
+hod_ids = []
+
+for username, password, role in hod_accounts:
+    cursor.execute("""
+    INSERT INTO users(username, password, role)
+    VALUES (?, ?, ?)
+    """, (username, password, role))
+    
+    hod_ids.append(cursor.lastrowid)
+
+# ==========================
+# HOD Profiles
+# ==========================
+
+hods = [
+    (hod_ids[0], "Dr. Vikram Singh", "Computer", "vikram.singh@college.edu"),
+    (hod_ids[1], "Prof. Ananya Sharma", "Information Technology", "ananya.sharma@college.edu"),
+    (hod_ids[2], "Dr. Suresh Kumar", "Electronics and Communication", "suresh.kumar@college.edu"),
+    (hod_ids[3], "Prof. Rajendra Patel", "Mechanical Engineering", "rajendra.patel@college.edu"),
+    (hod_ids[4], "Dr. Neeta Deshmukh", "Civil Engineering", "neeta.deshmukh@college.edu")
+]
+
+cursor.executemany("""
+INSERT INTO hods
+(user_id, full_name, department, email)
+VALUES (?, ?, ?, ?)
+""", hods)
 
 conn.commit()
 conn.close()

@@ -10,7 +10,7 @@ from modules.student.student_panel import student_panel
 from modules.teacher.teacher_panel import teacher_panel
 
 # HOD
-from modules.hod.dashboard import hod_dashboard
+from modules.hod.hod_panel import hod_panel
 
 # Principal
 from modules.principal.dashboard import principal_dashboard
@@ -34,7 +34,7 @@ else:
         teacher_panel()
 
     elif role == "HOD":
-        hod_dashboard()
+        hod_panel()
 
     elif role == "Principal":
         principal_dashboard()

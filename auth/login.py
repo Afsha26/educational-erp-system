@@ -250,7 +250,9 @@ def login_page():
 
                 if "email" in user:
                     st.session_state.email = user["email"]
-
+                    
+                if "hod_id" in user:
+                    st.session_state.hod_id = user["hod_id"]
                 st.success(
                     f"Welcome {user.get('full_name', user['username'])} 🎉"
                 )
