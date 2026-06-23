@@ -5,7 +5,7 @@ from modules.hod.hod_dashboard import hod_dashboard
 # from modules.hod.syllabus import hod_syllabus
 # from modules.hod.attendance import hod_attendance
 from modules.hod.announcements import hod_announcements
-# from modules.hod.queries import hod_queries
+from modules.hod.hod_queries import hod_queries
 
 
 def hod_panel():
@@ -131,11 +131,7 @@ def hod_panel():
             <div class="profile-name">
                 {full_name}
             </div>
-
-            <div class="profile-info">
-                Head of Department
-            </div>
-
+            
             <div class="profile-info">
                 {department} Department
             </div>
@@ -259,6 +255,6 @@ def hod_panel():
 
         hod_announcements(st.session_state.user_id)
 
-    # elif page == "Queries":
+    elif page == "Queries":
 
-    #     hod_queries()
+        hod_queries(st.session_state.user_id)
