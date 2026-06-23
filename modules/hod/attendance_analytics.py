@@ -9,7 +9,7 @@ def hod_attendance_analytics(user_id):
 
     st.markdown("""
     <div style="
-        background:linear-gradient(135deg,#11998e,#38ef7d);
+        background:linear-gradient(135deg,#6A11CB,#2575FC);
         padding:25px;
         border-radius:15px;
         color:white;

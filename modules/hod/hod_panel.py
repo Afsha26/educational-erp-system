@@ -251,9 +251,9 @@ def hod_panel():
 
         hod_attendance_analytics(st.session_state.user_id)
 
-    #elif page == "Announcements":
+    elif page == "Announcements":
 
-    #  hod_attendance_analytics(st.session_state.user_id)
+        hod_announcements(st.session_state.user_id)
 
     elif page == "Queries":
 
