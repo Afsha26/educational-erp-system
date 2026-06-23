@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 from database.db import get_connection
 
-
-def hod_queries(user_id):
+def queries(user_id):
 
     st.markdown("""
     <div style="
