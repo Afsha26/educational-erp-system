@@ -1,8 +1,8 @@
 import streamlit as st
 
 from .hod_dashboard import hod_dashboard
-# from .teachers import hod_teachers
-# from .syllabus import hod_syllabus
+from .teachers import hod_teachers
+from .syllabus import hod_syllabus
 from .attendance_analytics import hod_attendance_analytics
 from .announcements import hod_announcements
 from .hod_queries import queries
@@ -239,13 +239,13 @@ def hod_panel():
 
         hod_dashboard(st.session_state.user_id)
 
-    # elif page == "Teachers":
+    elif page == "Teachers":
 
-    #     hod_teachers()
+        hod_teachers()
 
-    # elif page == "Syllabus":
+    elif page == "Syllabus":
 
-    #     hod_syllabus()
+        hod_syllabus()
 
     elif page == "Attendance":
 
