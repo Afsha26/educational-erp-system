@@ -234,22 +234,22 @@ def principal_panel():
 
         principal_dashboard()
 
-    # elif page == "Subjects":
+    elif page == "Subjects":
 
-    #     principal_subjects()
+        principal_subjects()
 
-    # elif page == "HODs":
+    elif page == "HODs":
 
-    #     principal_hods()
+        principal_hods()
 
-    # elif page == "Announcements":
+    elif page == "Announcements":
 
-    #     principal_announcements()
+        principal_announcements()
 
-    # elif page == "Analytics":
+    elif page == "Analytics":
 
-    #     principal_analytics()
+        principal_analytics()
 
-    # elif page == "Reports":
+    elif page == "Reports":
 
-    #     principal_reports()
+        principal_reports()

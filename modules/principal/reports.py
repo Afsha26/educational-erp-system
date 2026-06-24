@@ -1,97 +1,42 @@
 import streamlit as st
-
-from modules.principal.dashboard import principal_dashboard
-from modules.principal.subjects import principal_subjects
-from modules.principal.hods import principal_hods
-from modules.principal.announcements import principal_announcements
-from modules.principal.analytics import principal_analytics
-from modules.principal.reports import principal_reports
+import sqlite3
+import pandas as pd
 
 
-def principal_panel():
+def principal_reports():
+    st.title("Principal Reports")
+    st.write("Generate academic and administrative reports for the institution.")
 
-    # ==================================
-    # SESSION STATE
-    # ==================================
+    conn = sqlite3.connect("database/erp.db")
 
-    if "principal_page" not in st.session_state:
-        st.session_state.principal_page = "Dashboard"
+    total_students = pd.read_sql_query(
+        "SELECT COUNT(*) AS total FROM students",
+        conn
+    )["total"][0]
 
-    # ==================================
-    # SIDEBAR
-    # ==================================
+    total_teachers = pd.read_sql_query(
+        "SELECT COUNT(*) AS total FROM teachers",
+        conn
+    )["total"][0]
 
-    with st.sidebar:
+    average_attendance = pd.read_sql_query(
+        "SELECT AVG(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100 AS attendance_pct FROM attendance",
+        conn
+    )["attendance_pct"][0]
 
-        st.markdown("## 👨‍💼 Principal Panel")
+    passed_reports = pd.read_sql_query(
+        "SELECT department, COUNT(*) AS subject_count FROM subjects GROUP BY department",
+        conn
+    )
 
-        st.markdown("---")
+    conn.close()
 
-        if st.button(
-            "🏠 Dashboard",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "Dashboard"
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Students", total_students)
+    col2.metric("Total Teachers", total_teachers)
+    col3.metric("Average Attendance", f"{average_attendance:.2f}%")
 
-        if st.button(
-            "📚 Subjects",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "Subjects"
+    st.subheader("Subject Count by Department")
+    st.dataframe(passed_reports)
 
-        if st.button(
-            "👨‍💼 HODs",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "HODs"
-
-        if st.button(
-            "📢 Announcements",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "Announcements"
-
-        if st.button(
-            "📊 Analytics",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "Analytics"
-
-        if st.button(
-            "📄 Reports",
-            use_container_width=True
-        ):
-            st.session_state.principal_page = "Reports"
-
-        st.markdown("---")
-
-        if st.button(
-            "🚪 Logout",
-            use_container_width=True
-        ):
-            st.session_state.logged_in = False
-            st.session_state.username = None
-            st.session_state.role = None
-            st.rerun()
-
-    # ==================================
-    # PAGE ROUTING
-    # ==================================
-
-    if st.session_state.principal_page == "Dashboard":
-        principal_dashboard()
-
-    elif st.session_state.principal_page == "Subjects":
-        principal_subjects()
-
-    elif st.session_state.principal_page == "HODs":
-        principal_hods()
-
-    elif st.session_state.principal_page == "Announcements":
-        principal_announcements()
-
-    elif st.session_state.principal_page == "Analytics":
-        principal_analytics()
-
-    elif st.session_state.principal_page == "Reports":
-        principal_reports()
+    st.info("This is a sample report view. Extend it with custom filters and export options.")

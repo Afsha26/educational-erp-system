@@ -3,7 +3,7 @@ import streamlit as st
 from auth.login import login_page
 
 # Student
-from modules.student.student_panel import student_panel
+from modules.principal.principal_panel import principal_panel
 from modules.student.student_panel import student_panel
 
 # Teacher
@@ -37,5 +37,4 @@ else:
         hod_panel()
 
     elif role == "Principal":
-        principal_dashboard()
-
+        principal_panel()
