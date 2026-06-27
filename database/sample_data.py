@@ -127,16 +127,39 @@ INSERT INTO teachers
 VALUES(?,?,?,?,?)
 """, teachers)
 
+
 # ==========================
-# Principal User
+# Principal TABLE
 # ==========================
 
+# Insert Principal User
 cursor.execute("""
-INSERT INTO users(username, password, role)
+INSERT OR IGNORE INTO users(username, password, role)
 VALUES (?, ?, ?)
 """, ("principal1", "123", "Principal"))
 
+# Get Principal User ID
+cursor.execute("""
+SELECT user_id
+FROM users
+WHERE username = ?
+""", ("principal1",))
 
+principal_user_id = cursor.fetchone()[0]
+
+# Insert Principal Details
+cursor.execute("""
+INSERT OR IGNORE INTO principals(
+    user_id,
+    full_name,
+    email
+)
+VALUES (?, ?, ?)
+""", (
+    principal_user_id,
+    "Dr. Principal",
+    "principal@college.edu"
+))
 # ==========================
 # Subject Assignments
 # ==========================

@@ -169,11 +169,30 @@ CREATE TABLE IF NOT EXISTS hods(
     user_id INTEGER UNIQUE,
     full_name TEXT NOT NULL,
     department TEXT,
+    email TEXT,
     FOREIGN KEY(user_id)
         REFERENCES users(user_id)
         ON DELETE CASCADE
 )
                """)
+
+
+# ==========================
+# Principal Table
+# ==========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS principals(
+    principal_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE,
+    full_name TEXT NOT NULL,
+    email TEXT,
+
+    FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+)
+""")
 
 
 # ==========================

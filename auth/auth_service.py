@@ -93,8 +93,24 @@ def authenticate(username, password):
             result["full_name"] = hod["full_name"]
             result["department"] = hod["department"]
             result["email"] = hod["email"]
-    else:
-        pass
+        
+    elif role == "Principal":
+            cursor.execute("""
+                SELECT
+                    principal_id,
+                    full_name,
+                    email
+                FROM principals
+                WHERE user_id = ?
+            """, (user_id,))
+
+            principal = cursor.fetchone()
+
+            if principal:
+
+                result["principal_id"] = principal["principal_id"]
+                result["full_name"] = principal["full_name"]
+                result["email"] = principal["email"]    
     conn.close()
 
     return result

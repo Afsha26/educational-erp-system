@@ -253,10 +253,13 @@ def login_page():
                     
                 if "hod_id" in user:
                     st.session_state.hod_id = user["hod_id"]
+
+                if "principal_id" in user:
+                    st.session_state.principal_id = user["principal_id"]
+                    
                 st.success(
                     f"Welcome {user.get('full_name', user['username'])} 🎉"
                 )
-
                 st.rerun()
 
             else:
