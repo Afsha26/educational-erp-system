@@ -2,6 +2,75 @@ import streamlit as st
 import pandas as pd
 from database.db import get_connection
 
+# ==================================
+# PAGE CSS
+# ==================================
+
+st.markdown("""
+<style>
+
+/* Section headings */
+h3{
+    color:#58339C;
+}
+
+/* Metric Cards */
+div[data-testid="stMetric"]{
+    background:white;
+    border-left:6px solid #9043B7;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0px 2px 10px rgba(88,51,156,0.12);
+}
+
+/* Forms */
+div[data-testid="stForm"]{
+    background:#FFFFFF;
+    border:2px solid #E0D4F0;
+    border-radius:15px;
+    padding:20px;
+}
+
+/* Text Inputs */
+div[data-baseweb="input"]{
+    border-radius:10px;
+}
+
+/* Select Boxes */
+div[data-baseweb="select"]{
+    border-radius:10px;
+}
+
+/* DataFrame */
+div[data-testid="stDataFrame"]{
+    border:2px solid #E0D4F0;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+/* Buttons */
+div.stButton > button{
+    background:#58339C;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    height:45px;
+}
+
+div.stButton > button:hover{
+    background:#9043B7;
+    color:white;
+}
+
+/* Caption */
+div[data-testid="stCaptionContainer"]{
+    color:#58339C;
+    font-weight:600;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 def principal_hods():
 

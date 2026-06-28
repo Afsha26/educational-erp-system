@@ -8,21 +8,21 @@ cursor = conn.cursor()
 # ==========================
 
 students = [
-    ('CE101', 'Afsha Shaikh', 'Computer', 4, 'A', 'afsha@gmail.com'),
-    ('CE102', 'Ayesha Khan', 'Computer', 4, 'A', 'ayesha@gmail.com'),
-    ('CE103', 'Mohammed Ali', 'Computer', 4, 'A', 'mohammed@gmail.com'),
-    ('CE104', 'Sara Ansari', 'Computer', 4, 'A', 'sara@gmail.com'),
+    ('CE101', 'Afsha Shaikh', 'Computer', 6, 'A', 'afsha@gmail.com'),
+    ('CE102', 'Ayesha Khan', 'Computer', 6, 'A', 'ayesha@gmail.com'),
+    ('CE103', 'Mohammed Ali', 'Computer', 2, 'A', 'mohammed@gmail.com'),
+    ('CE104', 'Sara Ansari', 'Computer', 2, 'A', 'sara@gmail.com'),
     ('CE105', 'Zain Shaikh', 'Computer', 4, 'A', 'zain@gmail.com'),
-    ('CE106', 'Fatima Patel', 'Computer', 4, 'A', 'fatima@gmail.com'),
+    ('CE106', 'Fatima Patel', 'Civil', 2, 'A', 'fatima@gmail.com'),
     ('CE107', 'Rahul Sharma', 'Computer', 4, 'A', 'rahul@gmail.com'),
-    ('CE108', 'Priya Verma', 'Computer', 4, 'A', 'priya@gmail.com'),
-    ('CE109', 'Arjun Singh', 'Computer', 4, 'A', 'arjun@gmail.com'),
-    ('CE110', 'Sneha Joshi', 'Computer', 4, 'A', 'sneha@gmail.com'),
-    ('CE111', 'Rohan Deshmukh', 'Computer', 4, 'A', 'rohan@gmail.com'),
-    ('CE112', 'Neha Gupta', 'Computer', 4, 'A', 'neha@gmail.com'),
-    ('CE113', 'Imran Sheikh', 'Computer', 4, 'A', 'imran@gmail.com'),
-    ('CE114', 'Pooja Nair', 'Computer', 4, 'A', 'pooja@gmail.com'),
-    ('CE115', 'Karan Mehta', 'Computer', 4, 'A', 'karan@gmail.com')
+    ('CE108', 'Priya Verma', 'Civil', 4, 'A', 'priya@gmail.com'),
+    ('CE109', 'Arjun Singh', 'Civil', 4, 'A', 'arjun@gmail.com'),
+    ('CE110', 'Sneha Joshi', 'Civil', 2, 'A', 'sneha@gmail.com'),
+    ('CE111', 'Rohan Deshmukh', 'Civil', 2, 'A', 'rohan@gmail.com'),
+    ('CE112', 'Neha Gupta', 'Information Technology', 4, 'A', 'neha@gmail.com'),
+    ('CE113', 'Imran Sheikh', 'Information Technology', 6, 'A', 'imran@gmail.com'),
+    ('CE114', 'Pooja Nair', 'Information Technology', 6, 'A', 'pooja@gmail.com'),
+    ('CE115', 'Karan Mehta', 'Information Technology', 6, 'A', 'karan@gmail.com')
 ]
 
 # ==========================

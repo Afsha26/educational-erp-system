@@ -2,6 +2,75 @@ import streamlit as st
 import pandas as pd
 from database.db import get_connection
 
+# ==================================
+# PAGE CSS
+# ==================================
+
+st.markdown("""
+<style>
+
+/* Section headings */
+h3{
+    color:#58339C;
+}
+
+/* Metric Cards */
+div[data-testid="stMetric"]{
+    background:white;
+    border-left:6px solid #9043B7;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0px 2px 10px rgba(88,51,156,0.12);
+}
+
+/* Forms */
+div[data-testid="stForm"]{
+    background:#FFFFFF;
+    border:2px solid #E0D4F0;
+    border-radius:15px;
+    padding:20px;
+}
+
+/* Text Inputs */
+div[data-baseweb="input"]{
+    border-radius:10px;
+}
+
+/* Select Boxes */
+div[data-baseweb="select"]{
+    border-radius:10px;
+}
+
+/* DataFrame */
+div[data-testid="stDataFrame"]{
+    border:2px solid #E0D4F0;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+/* Buttons */
+div.stButton > button{
+    background:#58339C;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    height:45px;
+}
+
+div.stButton > button:hover{
+    background:#9043B7;
+    color:white;
+}
+
+/* Caption */
+div[data-testid="stCaptionContainer"]{
+    color:#58339C;
+    font-weight:600;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 def principal_subjects():
 
@@ -137,17 +206,48 @@ def principal_subjects():
 
                     st.rerun()
 
-    st.divider()
+        st.divider()
 
     # ==================================
-    # SEARCH
+    # FILTERS
     # ==================================
 
-    search = st.text_input(
-        "🔍 Search Subject"
-    )
+    st.subheader("🔍 Search & Filter Subjects")
 
-    query = """
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        search = st.text_input(
+            "Search Subject"
+        )
+
+    with col2:
+        department_filter = st.selectbox(
+            "Department",
+            [
+                "All",
+                "Computer",
+                "Information Technology",
+                "Electronics",
+                "Mechanical",
+                "Civil"
+            ]
+        )
+
+    with col3:
+        semester_filter = st.selectbox(
+            "Semester",
+            [
+                "All",
+                1,2,3,4,5,6,7,8
+            ]
+        )
+
+    # ==================================
+    # LOAD SUBJECTS
+    # ==================================
+
+    df = pd.read_sql_query("""
     SELECT
         subject_id,
         subject_name,
@@ -155,29 +255,52 @@ def principal_subjects():
         semester,
         completion_percentage
     FROM subjects
-    """
+    ORDER BY department, semester, subject_name
+    """, conn)
 
-    df = pd.read_sql_query(
-        query,
-        conn
-    )
+    # ==================================
+    # APPLY FILTERS
+    # ==================================
 
-    if search:
+    filtered_df = df.copy()
 
-        df = df[
-            df["subject_name"]
+    if search.strip():
+
+        filtered_df = filtered_df[
+            filtered_df["subject_name"]
             .str.contains(
                 search,
-                case=False
+                case=False,
+                na=False
             )
         ]
+
+    if department_filter != "All":
+
+        filtered_df = filtered_df[
+            filtered_df["department"] == department_filter
+        ]
+
+    if semester_filter != "All":
+
+        filtered_df = filtered_df[
+            filtered_df["semester"] == semester_filter
+        ]
+
+    # ==================================
+    # SUBJECT TABLE
+    # ==================================
 
     st.subheader("📋 Subject List")
 
     st.dataframe(
-        df,
+        filtered_df,
         use_container_width=True,
         hide_index=True
+    )
+
+    st.caption(
+        f"Showing {len(filtered_df)} of {len(df)} subjects"
     )
 
     st.divider()
@@ -188,17 +311,23 @@ def principal_subjects():
 
     st.subheader("🗑 Delete Subject")
 
-    if not df.empty:
+    if filtered_df.empty:
 
-        subject_option = {
-            f"{row.subject_name} (Sem {row.semester})":
+        st.info(
+            "No subjects available for the selected filters."
+        )
+
+    else:
+
+        subject_options = {
+            f"{row.subject_name} | {row.department} | Semester {row.semester}":
             row.subject_id
-            for _, row in df.iterrows()
+            for _, row in filtered_df.iterrows()
         }
 
         selected_subject = st.selectbox(
             "Select Subject",
-            list(subject_option.keys())
+            list(subject_options.keys())
         )
 
         if st.button(
@@ -211,7 +340,7 @@ def principal_subjects():
             WHERE subject_id=?
             """,
             (
-                subject_option[selected_subject],
+                subject_options[selected_subject],
             ))
 
             conn.commit()
