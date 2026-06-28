@@ -38,7 +38,7 @@ def authenticate(username, password):
     if role == "Student":
 
         cursor.execute("""
-            SELECT student_id, full_name, roll_no
+            SELECT student_id, full_name, roll_no ,department, semester, division, email
             FROM students
             WHERE user_id = ?
         """, (user_id,))
@@ -50,6 +50,10 @@ def authenticate(username, password):
             result["student_id"] = student["student_id"]
             result["full_name"] = student["full_name"]
             result["roll_no"] = student["roll_no"]
+            result["department"] = student["department"]
+            result["semester"] = student["semester"]
+            result["division"] = student["division"]
+            result["email"] = student["email"]
 
     elif role == "Teacher":
 

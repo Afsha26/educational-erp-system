@@ -3,6 +3,7 @@ import streamlit as st
 from .dashboard import principal_dashboard
 from .subjects import principal_subjects
 from .hods import principal_hods
+from .teacher import principal_teachers
 from .announcements import principal_announcements
 from .analytics import principal_analytics
 from .reports import principal_reports
@@ -245,6 +246,10 @@ def principal_panel():
     elif page == "Subjects":
 
         principal_subjects()
+
+    elif page == "Teachers":
+
+        principal_teachers()
 
     elif page == "HODs":
 

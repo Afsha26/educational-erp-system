@@ -239,6 +239,12 @@ def login_page():
                 if "roll_no" in user:
                     st.session_state.roll_no = user["roll_no"]
 
+                if "division" in user:
+                    st.session_state.division = user["division"]
+                
+                if "semester" in user:
+                    st.session_state.semester = user["semester"]
+                    
                 if "teacher_id" in user:
                     st.session_state.teacher_id = user["teacher_id"]
 

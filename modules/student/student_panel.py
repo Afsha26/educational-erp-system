@@ -79,6 +79,26 @@ def student_panel():
         "roll_no",
         "Student"
     )
+    student_id = st.session_state.get(
+        "student_id",
+        "-"
+    )
+    student_department = st.session_state.get(
+        "department",
+        "-"
+    )
+    student_semester = st.session_state.get(
+        "semester",
+        "-"
+    )
+    student_division = st.session_state.get(
+        "division",
+        "-"
+    )
+    student_email = st.session_state.get(
+        "email",
+        "-"
+    )
 
     # ==================================
     # SIDEBAR
@@ -123,8 +143,49 @@ def student_panel():
         <div style="
             color:#E8DDF5;
             font-size:14px;
+            margin-top:6px;
         ">
-            {student_rollno}
+            Roll No: {student_rollno}
+        </div>
+
+        <div style="
+            color:#E8DDF5;
+            font-size:13px;
+            margin-top:4px;
+        ">
+            Student ID: {student_id}
+        </div>
+
+        <div style="
+            color:#E8DDF5;
+            font-size:13px;
+            margin-top:2px;
+        ">
+            Department: {student_department}
+        </div>
+
+        <div style="
+            color:#E8DDF5;
+            font-size:13px;
+            margin-top:2px;
+        ">
+            Semester: {student_semester}
+        </div>
+
+        <div style="
+            color:#E8DDF5;
+            font-size:13px;
+            margin-top:2px;
+        ">
+            Division: {student_division}
+        </div>
+
+        <div style="
+            color:#E8DDF5;
+            font-size:13px;
+            margin-top:2px;
+        ">
+            Email: {student_email}
         </div>
 
         </div>

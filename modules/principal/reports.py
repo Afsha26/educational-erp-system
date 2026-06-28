@@ -209,6 +209,9 @@ def principal_reports():
 
     generate = st.button("Generate Report")
 
+    display_df = pd.DataFrame()
+    gen_on = ""
+
     # =====================================
     # LOAD DATA / QUERIES
     # =====================================
@@ -249,7 +252,7 @@ def principal_reports():
         s2.write(f"**Generated On:** {gen_on}")
         s3.write(f"**Record Count:** {total_records}")
 
-            st.divider()
+        st.divider()
 
         # =====================================
         # PREVIEW DATAFRAME
@@ -297,63 +300,75 @@ def principal_reports():
 
     st.divider()
 
-            # =====================================
-            # EXPORT SECTION
-            # =====================================
+    # =====================================
+    # EXPORT SECTION
+    # =====================================
 
-            st.subheader("📤 Export Report")
+    st.subheader("📤 Export Report")
 
-        st.divider()
-
-        # =====================================
-        # EXPORT SECTION
-        # =====================================
-
-        st.subheader("📤 Export Report")
+    if not display_df.empty:
         csv_bytes, excel_bytes, safe_name, today = export_report(display_df, report_type)
 
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
-            st.download_button("⬇ Download CSV", data=csv_bytes, file_name=f"{safe_name}_{today}.csv", mime="text/csv")
+            st.download_button(
+                "⬇ Download CSV",
+                data=csv_bytes,
+                file_name=f"{safe_name}_{today}.csv",
+                mime="text/csv",
+            )
         with c2:
-            st.download_button("⬇ Download Excel", data=excel_bytes, file_name=f"{safe_name}_{today}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            st.download_button(
+                "⬇ Download Excel",
+                data=excel_bytes,
+                file_name=f"{safe_name}_{today}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        with c3:
+            try:
+                from reportlab.lib import colors
+                from reportlab.lib.pagesizes import letter
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import Paragraph, Spacer, SimpleDocTemplate, Table, TableStyle
 
-        # close connection if still open
-        try:
-            conn.close()
-        except Exception:
-            pass
-                    elements.append(Paragraph(f"Generated On: {gen_on}", styles["Normal"]))
-                    elements.append(Spacer(1, 12))
+                buffer = io.BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=letter)
+                elements = []
+                styles = getSampleStyleSheet()
 
-                    # Prepare table data (limit wide tables)
-                    table_data = [list(display_df.columns)] + display_df.head(200).astype(str).values.tolist()
+                elements.append(Paragraph(f"Generated On: {gen_on or 'N/A'}", styles["Normal"]))
+                elements.append(Spacer(1, 12))
 
-                    tbl = Table(table_data, repeatRows=1)
-                    tbl.setStyle(TableStyle([
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#58339C")),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-                    ]))
-
-                    elements.append(tbl)
-                    doc.build(elements)
-                    buffer.seek(0)
-                    pdf_bytes = buffer.read()
-
-                    st.download_button(
-                        "Download PDF",
-                        data=pdf_bytes,
-                        file_name=f"{safe_name}_{today}.pdf",
-                        mime="application/pdf"
+                table_data = [list(display_df.columns)] + display_df.head(200).astype(str).values.tolist()
+                tbl = Table(table_data, repeatRows=1)
+                tbl.setStyle(
+                    TableStyle(
+                        [
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#58339C")),
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                        ]
                     )
+                )
 
-                except Exception:
-                    st.info("PDF export requires 'reportlab'. Install with: pip install reportlab")
+                elements.append(tbl)
+                doc.build(elements)
+                buffer.seek(0)
+                pdf_bytes = buffer.read()
 
-            else:
-                st.info("Nothing to export.")
+                st.download_button(
+                    "Download PDF",
+                    data=pdf_bytes,
+                    file_name=f"{safe_name}_{today}.pdf",
+                    mime="application/pdf",
+                )
+            except Exception:
+                st.info("PDF export requires 'reportlab'. Install with: pip install reportlab")
+    else:
+        st.info("Generate a report first to export it.")
 
-        finally:
-            conn.close()
+    try:
+        conn.close()
+    except Exception:
+        pass
 

@@ -5,7 +5,7 @@ import pandas as pd
 
 def show_dashboard():
 
-    student_id = st.session_state.user_id
+    student_id = st.session_state.get("student_id", st.session_state.get("user_id"))
 
     conn = sqlite3.connect("database/erp.db")
 
@@ -23,8 +23,15 @@ def show_dashboard():
         params=(student_id,)
     )
 
-    full_name = student_df.iloc[0]["full_name"]
-
+    if student_df.empty:
+        full_name = st.session_state.get("full_name", "Student")
+        student_department = None
+        student_semester = None
+    else:
+        student_row = student_df.iloc[0]
+        full_name = student_row["full_name"]
+        student_department = student_row["department"]
+        student_semester = student_row["semester"]
     # ==================================
     # ATTENDANCE %
     # ==================================
@@ -60,16 +67,20 @@ def show_dashboard():
     # SUBJECT COUNT
     # ==================================
 
-    subject_count = pd.read_sql_query(
-        """
-        SELECT COUNT(*) AS total
-        FROM subjects
-        WHERE semester=?
-        """,
-        conn,
-        params=(student_df.iloc[0]["semester"],)
-    )["total"][0]
-
+    if student_department is not None and student_semester is not None:
+        subject_df = pd.read_sql_query(
+            """
+            SELECT COUNT(*) AS total
+            FROM subjects
+            WHERE department=?
+            AND semester=?
+            """,
+            conn,
+            params=(student_department, student_semester)
+        )
+        subject_count = subject_df.iloc[0]["total"]
+    else:
+        subject_count = 0
     # ==================================
     # ANNOUNCEMENTS
     # ==================================
@@ -127,23 +138,26 @@ def show_dashboard():
     # SYLLABUS PROGRESS
     # ==================================
 
-    syllabus_df = pd.read_sql_query(
-        """
-        SELECT AVG(completion_percentage)
-        AS progress
-        FROM subjects
-        WHERE semester=?
-        """,
-        conn,
-        params=(student_df.iloc[0]["semester"],)
-    )
+    if student_department and student_semester is not None:
+        syllabus_df = pd.read_sql_query(
+            """
+            SELECT AVG(completion_percentage) AS progress
+            FROM subjects
+            WHERE department=?
+            AND semester=?
+            """,
+            conn,
+            params=(student_department, student_semester)
+        )
 
-    syllabus_progress = round(
-        syllabus_df.iloc[0]["progress"]
-        if syllabus_df.iloc[0]["progress"]
-        else 0,
-        2
-    )
+        syllabus_progress = round(
+            syllabus_df.iloc[0]["progress"]
+            if syllabus_df.iloc[0]["progress"]
+            else 0,
+            2
+        )
+    else:
+        syllabus_progress = 0
 
     conn.close()
 
