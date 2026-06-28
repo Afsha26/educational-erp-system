@@ -76,7 +76,7 @@ def show_dashboard():
             AND semester=?
             """,
             conn,
-            params=(student_department, student_semester)
+            params=(student_department, int(student_semester))
         )
         subject_count = subject_df.iloc[0]["total"]
     else:
@@ -147,7 +147,7 @@ def show_dashboard():
             AND semester=?
             """,
             conn,
-            params=(student_department, student_semester)
+            params=(student_department, int(student_semester))
         )
 
         syllabus_progress = round(
