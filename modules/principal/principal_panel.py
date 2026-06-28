@@ -170,7 +170,15 @@ def principal_panel():
         ):
             st.session_state.principal_page = "Subjects"
             st.rerun()
-
+        # ======================
+        # teachers
+        # ======================
+        if st.button(
+            " Teachers",   
+            use_container_width=True
+        ):
+            st.session_state.principal_page = "Teachers"
+            st.rerun()
         # ======================
         # HODS
         # ======================

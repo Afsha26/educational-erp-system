@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 from database.db import get_connection
 
+def principal_hods():
 # ==================================
 # PAGE CSS
 # ==================================
 
-st.markdown("""
+    st.markdown("""
 <style>
 
 /* Section headings */
@@ -71,8 +72,6 @@ div[data-testid="stCaptionContainer"]{
 
 </style>
 """, unsafe_allow_html=True)
-
-def principal_hods():
 
     st.markdown("""
     <div style="
