@@ -15,8 +15,8 @@ def teacher_dashboard():
         "Teacher"
     )
 
-    teacher_id = st.session_state.user_id
-
+    user_id = int(st.session_state.user_id)
+    teacher_id = int(st.session_state.teacher_id)
     # ==========================
     # DATABASE
     # ==========================
@@ -38,15 +38,15 @@ def teacher_dashboard():
     subject_df = pd.read_sql_query(
         """
         SELECT
-            subject_name,
-            completion_percentage
+        subject_name,
+        completion_percentage
         FROM subjects
         WHERE teacher_id=?
         """,
         conn,
         params=(teacher_id,)
     )
-
+    st.write(teacher_id)
     subject_count = len(subject_df)
 
     # Pending Queries

@@ -1,504 +1,911 @@
 import sqlite3
-
-import streamlit as st
-import pandas as pd
+from datetime import date
 import plotly.express as px
+import pandas as pd
+import streamlit as st
+from io import BytesIO
 
 
-def teacher_attendance(teacher_id):
+# =====================================================
+# DATABASE
+# =====================================================
 
-    # ==================================
-    # HEADER
-    # ==================================
+conn = sqlite3.connect(
+    "database/erp.db",
+    check_same_thread=False
+)
 
+conn.execute("PRAGMA foreign_keys = ON")
+
+
+# =====================================================
+# TEACHER ATTENDANCE
+# =====================================================
+
+def teacher_attendance(user_id: int):
+
+    # ===========================================
+    # PURPLE ERP THEME
+    # ===========================================
+
+    st.markdown("""
+    <style>
+
+    /* Primary Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #6D28D9, #8B5CF6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #5B21B6, #7C3AED);
+        color: white;
+    }
+
+    /* Download Button */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #6D28D9, #8B5CF6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #5B21B6, #7C3AED);
+    }
+
+    /* Selectbox */
+    .stSelectbox div[data-baseweb="select"] {
+        border-radius: 10px;
+    }
+
+    /* Date Input */
+    .stDateInput input {
+        border-radius: 10px;
+    }
+
+    /* Text Input */
+    .stTextInput input {
+        border-radius: 10px;
+    }
+
+    /* Checkbox */
+    input[type="checkbox"] {
+        accent-color: #7C3AED;
+    }
+
+    /* Progress Bar */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg,#6D28D9,#A855F7);
+    }
+
+    /* Focused Input Border */
+    div[data-baseweb="input"]:focus-within {
+        border-color: #7C3AED !important;
+        box-shadow: 0 0 0 1px #7C3AED !important;
+    }
+
+    /* Metric Cards */
+    div[data-testid="metric-container"] {
+        border: 1px solid #E5E7EB;
+        border-radius: 14px;
+        padding: 15px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+    .stDataEditor input[type="checkbox"] {
+    accent-color: #7C3AED !important;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+    
     st.html("""
     <div style="
-        background:linear-gradient(135deg,#58339C,#9043B7);
-        color:white;
+        background:linear-gradient(
+            135deg,
+            #58339C,
+            #9043B7
+        );
         padding:25px;
-        border-radius:20px;
+        border-radius:15px;
+        color:white;
         margin-bottom:20px;
     ">
-        <h2>📊 Attendance Management</h2>
+        <h2>📋 Attendance Management</h2>
 
         <p>
-            Manage student attendance,
-            monitor attendance trends and
-            generate attendance insights.
+        Create lecture attendance, manage student attendance,
+        and monitor attendance records.
         </p>
+
     </div>
     """)
 
-    # ==================================
-    # DATABASE CONNECT
-    # ==================================
+    # ===========================================
+    # FETCH SUBJECTS OF LOGGED IN TEACHER
+    # ===========================================
+    teacher_id = st.session_state.get("teacher_id", None)
+    subject_query = """
+    SELECT
+        subject_id,
+        subject_name,
+        department,
+        semester
+    FROM subjects
+    WHERE teacher_id=?
+    ORDER BY subject_name
+    """
 
-    conn = sqlite3.connect("database/erp.db")
-
-    attendance_df = pd.read_sql_query(
-        """
-        SELECT
-            a.status,
-            a.student_id,
-            s.roll_no,
-            s.full_name AS student_name,
-            l.lecture_date,
-            sub.subject_name,
-            sub.subject_id,
-            s.division
-        FROM attendance a
-        JOIN lectures l
-            ON a.lecture_id = l.lecture_id
-        JOIN subjects sub
-            ON l.subject_id = sub.subject_id
-        JOIN students s
-            ON a.student_id = s.student_id
-        WHERE l.teacher_id = ?
-        """,
+    subjects = pd.read_sql_query(
+        subject_query,
         conn,
         params=(teacher_id,)
     )
 
-    total_students = (
-        attendance_df["student_id"].nunique()
-        if not attendance_df.empty else 0
+    if subjects.empty:
+
+        st.warning(
+            "No subjects are assigned to you."
+        )
+        return
+
+    # ===========================================
+    # FILTERS
+    # ===========================================
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+
+        selected_subject = st.selectbox(
+            "Subject",
+            subjects["subject_name"]
+        )
+
+    selected_subject_row = subjects[
+        subjects["subject_name"] == selected_subject
+    ].iloc[0]
+
+    subject_id = int(
+        selected_subject_row["subject_id"]
     )
 
-    present_count = (
-        (attendance_df["status"] == "Present").sum()
-        if not attendance_df.empty else 0
+    department = selected_subject_row["department"]
+
+    semester = int(
+        selected_subject_row["semester"]
     )
 
-    absent_count = (
-        (attendance_df["status"] == "Absent").sum()
-        if not attendance_df.empty else 0
+    with col2:
+
+        division = st.selectbox(
+            "Division",
+            ["A", "B"]
+        )
+
+    with col3:
+
+        lecture_date = st.date_input(
+            "Lecture Date",
+            value=date.today()
+        )
+
+    st.info(
+        f"{selected_subject} | {department} | Semester {semester} | Division {division}"
+    )
+    # ===========================================
+    # FETCH STUDENTS
+    # ===========================================
+
+    student_query = """
+    SELECT
+        student_id,
+        roll_no,
+        full_name
+    FROM students
+    WHERE department=?
+    AND semester=?
+    AND division=?
+    ORDER BY roll_no
+    """
+
+    students = pd.read_sql_query(
+        student_query,
+        conn,
+        params=(
+            department,
+            semester,
+            division
+        )
     )
 
-    total_records = len(attendance_df)
-    attendance_percentage = (
-        round((present_count / total_records) * 100, 1)
-        if total_records > 0 else 0
+    if students.empty:
+
+        st.warning(
+            "No students found."
+        )
+
+        return
+
+    # ===========================================
+    # CREATE ATTENDANCE SHEET
+    # ===========================================
+
+    attendance_df = students.copy()
+    # ===========================================
+    # LOAD EXISTING ATTENDANCE
+    # ===========================================
+
+    existing_query = """
+    SELECT
+        student_id,
+        status
+    FROM attendance
+    WHERE lecture_id = (
+        SELECT lecture_id
+        FROM lectures
+        WHERE subject_id = ?
+        AND lecture_date = ?
+    )
+    """
+
+    existing = pd.read_sql_query(
+        existing_query,
+        conn,
+        params=(
+            subject_id,
+            str(lecture_date)
+        )
     )
 
-    # ==================================
-    # QUICK STATS
-    # ==================================
+    attendance_df["Present"] = True
+
+    # Create empty dictionary first
+    status_map = {}
+
+    if not existing.empty:
+
+        status_map = dict(
+            zip(
+                existing["student_id"],
+                existing["status"]
+            )
+        )
+
+    attendance_df["Present"] = attendance_df["student_id"].map(
+        lambda student_id:
+            status_map.get(student_id, "Present") == "Present"
+    )
+
+    st.subheader("Mark Attendance")
+    # ===========================================
+    # SEARCH STUDENT
+    # ===========================================
+
+    search = st.text_input(
+        "🔍 Search by Roll No or Student Name"
+    )
+
+    if search:
+
+        attendance_df = attendance_df[
+            attendance_df["roll_no"]
+            .str.contains(search, case=False)
+            |
+            attendance_df["full_name"]
+            .str.contains(search, case=False)
+        ]
+    edited_df = st.data_editor(
+        attendance_df,
+        hide_index=True,
+        use_container_width=True,
+        disabled=[
+            "student_id",
+            "roll_no",
+            "full_name"
+        ],
+        column_config={
+            "student_id": None,
+            "roll_no": st.column_config.TextColumn(
+                "Roll No"
+            ),
+            "full_name": st.column_config.TextColumn(
+                "Student Name"
+            ),
+            "Present": st.column_config.CheckboxColumn(
+                "Present"
+            ),
+        }
+    )
+
+    save_button = st.button(
+        "💾 Save Attendance",
+        use_container_width=True,
+        type="primary"
+    )   
+    # ===========================================
+    # EXPORT EXCEL
+    # ===========================================
+
+    excel = BytesIO()
+
+    edited_df.to_excel(
+        excel,
+        index=False
+    )
+
+    st.download_button(
+
+        "📥 Download Attendance",
+
+        excel.getvalue(),
+
+        file_name=f"{selected_subject}_{lecture_date}.xlsx",
+
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    )
+    st.divider()
+    # ===========================================
+    # KPI CARDS
+    # ===========================================
+
+    total_students = len(students)
+
+    present_default = total_students
+    absent_default = 0
+
+    attendance_default = (
+        (present_default / total_students) * 100
+        if total_students
+        else 0
+    )
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.metric(
-            "Students",
+            "👨‍🎓 Students",
             total_students
         )
 
     with col2:
         st.metric(
-            "Present",
-            present_count
+            "✅ Present",
+            present_default
         )
 
     with col3:
         st.metric(
-            "Absent",
-            absent_count
+            "❌ Absent",
+            absent_default
         )
 
     with col4:
         st.metric(
-            "Attendance %",
-            f"{attendance_percentage}%"
+            "📊 Attendance %",
+            f"{attendance_default:.1f}%"
         )
+    # ===========================================
+    # SAVE ATTENDANCE
+    # ===========================================
 
-    st.divider()
+    if save_button:
 
-    # ==================================
-    # MARK ATTENDANCE
-    # ==================================
+        cursor = conn.cursor()
 
-    st.subheader("✅ Mark Attendance")
+        # ---------------------------------------
+        # Check if lecture already exists
+        # ---------------------------------------
 
-    subjects_df = pd.read_sql_query(
-        """
-        SELECT
-            subject_id,
-            subject_name,
-            department,
-            semester
-        FROM subjects
-        WHERE teacher_id = ?
-        """,
-        conn,
-        params=(teacher_id,)
-    )
-
-    if subjects_df.empty:
-        st.warning("No subjects found for this teacher.")
-        conn.close()
-        return
-
-    subject_options = subjects_df["subject_name"].tolist()
-    subject_map = dict(
-        zip(subjects_df["subject_name"], subjects_df["subject_id"])
-    )
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        subject = st.selectbox(
-            "Subject",
-            subject_options
-        )
-
-    subject_row = subjects_df[
-        subjects_df["subject_name"] == subject
-    ].iloc[0]
-
-    divisions_df = pd.read_sql_query(
-        """
-        SELECT DISTINCT division
-        FROM students
-        WHERE department = ?
-          AND semester = ?
-        ORDER BY division
-        """,
-        conn,
-        params=(
-            subject_row["department"],
-            subject_row["semester"]
-        )
-    )
-
-    with col2:
-        division = st.selectbox(
-            "Division",
-            divisions_df["division"].tolist()
-            if not divisions_df.empty else ["A"]
-        )
-
-    with col3:
-        lecture_date = st.date_input("Lecture Date")
-
-    st.info(
-        f"Attendance Sheet : {subject} | Division {division}"
-    )
-
-    students_df = pd.read_sql_query(
-        """
-        SELECT
-            student_id,
-            roll_no,
-            full_name
-        FROM students
-        WHERE department = ?
-          AND semester = ?
-          AND division = ?
-        ORDER BY roll_no
-        """,
-        conn,
-        params=(
-            subject_row["department"],
-            subject_row["semester"],
-            division
-        )
-    )
-
-    lecture_df = pd.read_sql_query(
-        """
-        SELECT lecture_id
-        FROM lectures
-        WHERE subject_id = ?
-          AND teacher_id = ?
-          AND lecture_date = ?
-        """,
-        conn,
-        params=(
-            subject_map[subject],
-            teacher_id,
-            lecture_date.isoformat()
-        )
-    )
-
-    lecture_id = (
-        lecture_df["lecture_id"].iloc[0]
-        if not lecture_df.empty else None
-    )
-
-    attendance_history = {}
-    if lecture_id is not None:
-        history_df = pd.read_sql_query(
+        cursor.execute(
             """
-            SELECT student_id, status
-            FROM attendance
-            WHERE lecture_id = ?
+            SELECT lecture_id
+            FROM lectures
+            WHERE subject_id=?
+            AND lecture_date=?
             """,
-            conn,
-            params=(lecture_id,)
-        )
-        attendance_history = dict(
-            zip(history_df["student_id"], history_df["status"])
-        )
-
-    attendance_sheet_df = pd.DataFrame([
-        {
-            "student_id": row["student_id"],
-            "Roll No": row["roll_no"],
-            "Student Name": row["full_name"],
-            "Status": attendance_history.get(
-                row["student_id"], "Present"
-            )
-        }
-        for _, row in students_df.iterrows()
-    ]).set_index("student_id")
-
-    edited_df = st.data_editor(
-        attendance_sheet_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    if st.button(
-        "💾 Save Attendance",
-        use_container_width=True
-    ):
-        save_conn = sqlite3.connect("database/erp.db")
-        save_cursor = save_conn.cursor()
-
-        existing_lecture = save_cursor.execute(
-            "SELECT lecture_id FROM lectures WHERE subject_id = ? AND teacher_id = ? AND lecture_date = ?",
             (
-                subject_map[subject],
-                teacher_id,
-                lecture_date.isoformat()
+                subject_id,
+                str(lecture_date)
             )
-        ).fetchone()
+        )
 
-        if existing_lecture:
-            lecture_id = existing_lecture[0]
-        else:
-            save_cursor.execute(
-                "INSERT INTO lectures(subject_id, teacher_id, lecture_date) VALUES (?, ?, ?)",
-                (
-                    subject_map[subject],
+        lecture = cursor.fetchone()
+
+        # ---------------------------------------
+        # Create lecture if not exists
+        # ---------------------------------------
+
+        if lecture is None:
+
+            cursor.execute(
+                """
+                INSERT INTO lectures(
+                    subject_id,
                     teacher_id,
-                    lecture_date.isoformat()
+                    lecture_date
+                )
+                VALUES(?,?,?)
+                """,
+                (
+                    subject_id,
+                    teacher_id,
+                    str(lecture_date)
                 )
             )
-            lecture_id = save_cursor.lastrowid
 
-        for student_id, row in edited_df.iterrows():
-            status_value = row["Status"]
-            status_text = (
+            lecture_id = cursor.lastrowid
+
+        else:
+
+            lecture_id = lecture[0]
+
+            # Remove previous attendance
+            # so teacher can edit attendance
+
+            cursor.execute(
+                """
+                DELETE FROM attendance
+                WHERE lecture_id=?
+                """,
+                (lecture_id,)
+            )
+
+        # ---------------------------------------
+        # Insert attendance
+        # ---------------------------------------
+
+        attendance_records = []
+
+        for _, row in edited_df.iterrows():
+
+            status = (
                 "Present"
-                if str(status_value).strip().lower() in (
-                    "present", "true", "1", "yes", "y"
-                )
+                if row["Present"]
                 else "Absent"
             )
 
-            existing_record = save_cursor.execute(
-                "SELECT attendance_id FROM attendance WHERE lecture_id = ? AND student_id = ?",
-                (lecture_id, student_id)
-            ).fetchone()
+            attendance_records.append(
 
-            if existing_record:
-                save_cursor.execute(
-                    "UPDATE attendance SET status = ? WHERE attendance_id = ?",
-                    (status_text, existing_record[0])
-                )
-            else:
-                save_cursor.execute(
-                    "INSERT INTO attendance(lecture_id, student_id, status) VALUES (?, ?, ?)",
-                    (lecture_id, student_id, status_text)
+                (
+                    lecture_id,
+                    int(row["student_id"]),
+                    status
                 )
 
-        save_conn.commit()
-        save_conn.close()
-        st.success("Attendance saved successfully.")
+            )
+
+        cursor.executemany(
+            """
+            INSERT INTO attendance(
+                lecture_id,
+                student_id,
+                status
+            )
+            VALUES(?,?,?)
+            """,
+            attendance_records
+        )
+
+        conn.commit()
+
+        st.success(
+            "Attendance saved successfully."
+        )
+
+        # =======================================
+        # TODAY SUMMARY
+        # =======================================
+
+        total_students = len(attendance_records)
+
+        present_students = sum(
+            1
+            for record in attendance_records
+            if record[2] == "Present"
+        )
+
+        absent_students = (
+            total_students
+            - present_students
+        )
+
+        attendance_percentage = (
+            present_students
+            / total_students
+            * 100
+            if total_students
+            else 0
+        )
+
+        st.divider()
+
+        st.subheader("Today's Summary")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        col1.metric(
+            "Students",
+            total_students
+        )
+
+        col2.metric(
+            "Present",
+            present_students
+        )
+
+        col3.metric(
+            "Absent",
+            absent_students
+        )
+
+        col4.metric(
+            "Attendance %",
+            f"{attendance_percentage:.1f}%"
+        )
+        st.progress(attendance_percentage/100)
+
+        st.caption(
+
+            f"Overall Attendance : {attendance_percentage:.1f}%"
+
+        )
+    # ===========================================
+    # RECENT LECTURES
+    # ===========================================
 
     st.divider()
+    st.subheader("📚 Recent Lectures")
 
-    # ==================================
-    # SUBJECT ATTENDANCE ANALYTICS
-    # ==================================
+    recent_query = """
+    SELECT
+        l.lecture_date,
+        s.subject_name,
 
-    st.subheader("📈 Subject Attendance Analytics")
+        SUM(
+            CASE
+                WHEN a.status='Present'
+                THEN 1
+                ELSE 0
+            END
+        ) AS present,
 
-    analytics_df = pd.read_sql_query(
-        """
-        SELECT
-            sub.subject_name AS Subject,
-            ROUND(
-                AVG(CASE WHEN a.status = 'Present' THEN 1.0 ELSE 0.0 END) * 100,
-                1
-            ) AS Attendance
-        FROM attendance a
-        JOIN lectures l
-            ON a.lecture_id = l.lecture_id
-        JOIN subjects sub
-            ON l.subject_id = sub.subject_id
-        WHERE l.teacher_id = ?
-        GROUP BY sub.subject_name
-        ORDER BY Attendance DESC
-        """,
+        SUM(
+            CASE
+                WHEN a.status='Absent'
+                THEN 1
+                ELSE 0
+            END
+        ) AS absent
+
+    FROM lectures l
+
+    JOIN attendance a
+        ON l.lecture_id=a.lecture_id
+
+    JOIN subjects s
+        ON l.subject_id=s.subject_id
+
+    WHERE l.teacher_id=?
+
+    GROUP BY l.lecture_id
+
+    ORDER BY l.lecture_date DESC
+
+    LIMIT 10
+    """
+
+    recent_df = pd.read_sql_query(
+        recent_query,
         conn,
         params=(teacher_id,)
     )
 
-    if analytics_df.empty:
-        st.info("No attendance analytics available yet.")
+    if recent_df.empty:
+
+        st.info("No attendance records available.")
+
     else:
+
+        st.dataframe(
+            recent_df,
+            hide_index=True,
+            use_container_width=True
+        )
+
+    # ===========================================
+    # SUBJECT ATTENDANCE ANALYTICS
+    # ===========================================
+
+    st.divider()
+
+    st.subheader("📊 Subject-wise Attendance")
+
+    analytics_query = """
+    SELECT
+
+        s.subject_name,
+
+        ROUND(
+
+            100.0 *
+
+            SUM(
+                CASE
+                    WHEN a.status='Present'
+                    THEN 1
+                    ELSE 0
+                END
+            )
+
+            /
+
+            COUNT(a.attendance_id)
+
+        ,2)
+
+        AS attendance_percentage
+
+    FROM attendance a
+
+    JOIN lectures l
+
+        ON a.lecture_id=l.lecture_id
+
+    JOIN subjects s
+
+        ON l.subject_id=s.subject_id
+
+    WHERE l.teacher_id=?
+
+    GROUP BY s.subject_id
+    """
+
+    analytics_df = pd.read_sql_query(
+
+        analytics_query,
+
+        conn,
+
+        params=(teacher_id,)
+
+    )
+
+    if not analytics_df.empty:
+
         fig = px.bar(
+
             analytics_df,
-            x="Subject",
-            y="Attendance",
-            text="Attendance",
+
+            x="subject_name",
+
+            y="attendance_percentage",
+
+            text="attendance_percentage",
+
             title="Average Attendance by Subject"
+
         )
 
         fig.update_traces(
+
             texttemplate="%{text}%",
+
             textposition="outside"
+
         )
 
         fig.update_layout(
-            yaxis_range=[0, 100],
+
+            yaxis_range=[0,100],
+
             height=450
+
         )
 
         st.plotly_chart(
+
             fig,
+
             use_container_width=True
+
         )
+
+    # ===========================================
+    # MONTHLY TREND
+    # ===========================================
 
     st.divider()
 
-    # ==================================
-    # ATTENDANCE TREND
-    # ==================================
+    st.subheader("📈 Monthly Attendance Trend")
 
-    st.subheader("📅 Monthly Attendance Trend")
+    trend_query = """
+
+    SELECT
+
+        strftime('%m',l.lecture_date) AS month,
+
+        ROUND(
+
+            100.0 *
+
+            SUM(
+                CASE
+                    WHEN a.status='Present'
+                    THEN 1
+                    ELSE 0
+                END
+            )
+
+            /
+
+            COUNT(*)
+
+        ,2)
+
+        AS attendance
+
+    FROM attendance a
+
+    JOIN lectures l
+
+        ON a.lecture_id=l.lecture_id
+
+    WHERE l.teacher_id=?
+
+    GROUP BY month
+
+    ORDER BY month
+
+    """
 
     trend_df = pd.read_sql_query(
-        """
-        SELECT
-            strftime('%b %Y', l.lecture_date) AS Month,
-            ROUND(
-                AVG(CASE WHEN a.status = 'Present' THEN 1.0 ELSE 0.0 END) * 100,
-                1
-            ) AS Attendance
-        FROM attendance a
-        JOIN lectures l
-            ON a.lecture_id = l.lecture_id
-        WHERE l.teacher_id = ?
-        GROUP BY strftime('%Y-%m', l.lecture_date)
-        ORDER BY strftime('%Y-%m', l.lecture_date)
-        """,
+
+        trend_query,
+
         conn,
+
         params=(teacher_id,)
+
     )
 
-    if trend_df.empty:
-        st.info("No attendance trend available yet.")
-    else:
-        trend_fig = px.line(
+    if not trend_df.empty:
+
+        month_names = {
+
+            "01":"Jan",
+            "02":"Feb",
+            "03":"Mar",
+            "04":"Apr",
+            "05":"May",
+            "06":"Jun",
+            "07":"Jul",
+            "08":"Aug",
+            "09":"Sep",
+            "10":"Oct",
+            "11":"Nov",
+            "12":"Dec"
+
+        }
+
+        trend_df["month"] = trend_df["month"].map(month_names)
+
+        fig = px.line(
+
             trend_df,
-            x="Month",
-            y="Attendance",
-            markers=True
+
+            x="month",
+
+            y="attendance",
+
+            markers=True,
+
+            title="Monthly Attendance Trend"
+
         )
 
-        trend_fig.update_layout(
+        fig.update_layout(
+
             yaxis_range=[0,100],
-            height=400
+
+            height=450
+
         )
 
         st.plotly_chart(
-            trend_fig,
+
+            fig,
+
             use_container_width=True
+
         )
+
+    # ===========================================
+    # LOW ATTENDANCE STUDENTS
+    # ===========================================
 
     st.divider()
 
-    # ==================================
-    # LOW ATTENDANCE STUDENTS
-    # ==================================
+    st.subheader("🚨 Low Attendance Students")
 
-    st.subheader("⚠️ Low Attendance Students")
+    low_query = """
+
+    SELECT
+
+        st.roll_no,
+
+        st.full_name,
+
+        ROUND(
+
+            100.0 *
+
+            SUM(
+                CASE
+                    WHEN a.status='Present'
+                    THEN 1
+                    ELSE 0
+                END
+            )
+
+            /
+
+            COUNT(*)
+
+        ,2)
+
+        AS attendance_percentage
+
+    FROM attendance a
+
+    JOIN students st
+
+        ON a.student_id=st.student_id
+
+    JOIN lectures l
+
+        ON a.lecture_id=l.lecture_id
+
+    WHERE l.teacher_id=?
+
+    GROUP BY st.student_id
+
+    HAVING attendance_percentage < 75
+
+    ORDER BY attendance_percentage ASC
+
+    """
 
     low_df = pd.read_sql_query(
-        """
-        SELECT
-            s.roll_no AS "Roll No",
-            s.full_name AS "Student Name",
-            ROUND(
-                AVG(CASE WHEN a.status = 'Present' THEN 1.0 ELSE 0.0 END) * 100,
-                1
-            ) AS "Attendance %"
-        FROM attendance a
-        JOIN lectures l
-            ON a.lecture_id = l.lecture_id
-        JOIN students s
-            ON a.student_id = s.student_id
-        WHERE l.teacher_id = ?
-        GROUP BY s.student_id
-        HAVING AVG(CASE WHEN a.status = 'Present' THEN 1.0 ELSE 0.0 END) * 100 < 75
-        ORDER BY "Attendance %" ASC
-        """,
+
+        low_query,
+
         conn,
+
         params=(teacher_id,)
+
     )
 
     if low_df.empty:
-        st.info("No low attendance students found.")
+
+        st.success(
+            "🎉 No students are below 75% attendance."
+        )
+
     else:
+
         st.dataframe(
+
             low_df,
-            use_container_width=True,
-            hide_index=True
+
+            hide_index=True,
+
+            use_container_width=True
+
         )
-
-    st.divider()
-
-    # ==================================
-    # RECENT ATTENDANCE
-    # ==================================
-
-    st.subheader("📖 Recent Attendance Sessions")
-
-    sessions_df = pd.read_sql_query(
-        """
-        SELECT
-            l.lecture_date AS "Date",
-            sub.subject_name AS "Subject",
-            s.division AS "Division",
-            ROUND(
-                AVG(CASE WHEN a.status = 'Present' THEN 1.0 ELSE 0.0 END) * 100,
-                1
-            ) AS "Attendance %"
-        FROM attendance a
-        JOIN lectures l
-            ON a.lecture_id = l.lecture_id
-        JOIN subjects sub
-            ON l.subject_id = sub.subject_id
-        JOIN students s
-            ON a.student_id = s.student_id
-        WHERE l.teacher_id = ?
-        GROUP BY l.lecture_id
-        ORDER BY l.lecture_date DESC
-        LIMIT 5
-        """,
-        conn,
-        params=(teacher_id,)
-    )
-
-    if sessions_df.empty:
-        st.info("No recent attendance sessions found.")
-    else:
-        st.dataframe(
-            sessions_df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    conn.close()
