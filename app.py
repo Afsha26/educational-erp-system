@@ -16,6 +16,12 @@ from modules.hod.hod_panel import hod_panel
 from modules.principal.dashboard import principal_dashboard
 from modules.teacher.teacher_panel import teacher_panel
 
+from database.admin_rec import create_default_principal
+
+
+
+create_default_principal()
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 

@@ -7,6 +7,8 @@ from .teacher import principal_teachers
 from .announcements import principal_announcements
 from .analytics import principal_analytics
 from .reports import principal_reports
+from .profile import principal_profile
+from .student_management import student_management
 
 
 def principal_panel():
@@ -202,6 +204,17 @@ def principal_panel():
             st.rerun()
 
         # ======================
+        # STUDENT MANAGEMENT
+        # ======================
+        
+        if st.button(
+            " Student Management",
+            use_container_width=True
+        ):
+            st.session_state.principal_page = "student_management"
+            st.rerun()
+
+        # ======================
         # ANNOUNCEMENTS
         # ======================
 
@@ -234,6 +247,16 @@ def principal_panel():
             st.session_state.principal_page = "Reports"
             st.rerun()
 
+        # ======================
+        # PROFILE
+        # ======================
+        if st.button(
+            " Profile",
+            use_container_width=True
+        ):
+            st.session_state.principal_page = "Profile"
+            st.rerun()
+
         st.markdown("---")
 
         if st.button(
@@ -264,6 +287,10 @@ def principal_panel():
     elif page == "HODs":
 
         principal_hods()
+    
+    elif page == "student_management":
+
+        student_management()
 
     elif page == "Announcements":
 
@@ -276,3 +303,7 @@ def principal_panel():
     elif page == "Reports":
 
         principal_reports()
+
+    elif page == "Profile":
+
+        principal_profile()
