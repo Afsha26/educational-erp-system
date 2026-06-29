@@ -1,3 +1,5 @@
+import math
+
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -55,9 +57,8 @@ def show_dashboard():
     )
 
     attendance_percentage = (
-        round(
-            (present_lectures / total_lectures) * 100,
-            2
+        math.floor(
+            (present_lectures / total_lectures) * 100
         )
         if total_lectures > 0
         else 0
@@ -276,7 +277,7 @@ def show_dashboard():
     st.subheader("📈 Attendance Progress")
 
     st.progress(
-        attendance_percentage / 100
+        math.floor((present_lectures / total_lectures) * 100)
     )
 
     if attendance_percentage >= 75:

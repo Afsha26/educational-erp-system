@@ -94,7 +94,7 @@ def show_announcements(user_id):
 
     search = st.text_input(
         "🔍 Search Announcement",
-        placeholder="Search by title or keyword..."
+        placeholder="Search by title e.g. Announcement 2..."
     )
 
     if search:

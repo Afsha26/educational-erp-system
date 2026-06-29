@@ -1,3 +1,4 @@
+import math
 import sqlite3
 import streamlit as st
 import pandas as pd
@@ -65,9 +66,8 @@ def show_attendance(student_id):
         ]
     )
 
-    attendance_percentage = round(
-        (present_lectures / total_lectures) * 100,
-        2
+    attendance_percentage = math.floor(
+        (present_lectures / total_lectures) * 100
     )
 
     # =====================

@@ -1,3 +1,4 @@
+from numpy import nan
 import streamlit as st
 from database.db import get_connection
 from datetime import datetime
@@ -254,7 +255,7 @@ the session.
 
                 st.markdown("---")
 
-                if teacher_reply:
+                if teacher_reply and teacher_reply not in [nan, None, ""]:
 
                     st.success(
                         f"Teacher Reply:\n\n{teacher_reply}"

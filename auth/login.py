@@ -1,3 +1,5 @@
+import sqlite3
+
 import streamlit as st
 from auth.auth_service import authenticate
 
@@ -136,16 +138,46 @@ def login_page():
 
         st.write("")
 
+        # =====================================
+        # LIVE METRICS
+        # =====================================
+
+        students_count = 0
+        teachers_count = 0
+        subjects_count = 0
+
+        try:
+            conn = sqlite3.connect("database/erp.db")
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT COUNT(*) FROM students")
+            students_count = cursor.fetchone()[0] or 0
+
+            cursor.execute("SELECT COUNT(*) FROM teachers")
+            teachers_count = cursor.fetchone()[0] or 0
+
+            cursor.execute("SELECT COUNT(*) FROM subjects")
+            subjects_count = cursor.fetchone()[0] or 0
+
+        except sqlite3.Error:
+            students_count = 0
+            teachers_count = 0
+            subjects_count = 0
+
+        finally:
+            if "conn" in locals():
+                conn.close()
+
         metric1, metric2, metric3 = st.columns(3)
 
         with metric1:
-            st.metric("Students", "500+")
+            st.metric("Students", f"{students_count}")
 
         with metric2:
-            st.metric("Teachers", "50+")
+            st.metric("Teachers", f"{teachers_count}")
 
         with metric3:
-            st.metric("Subjects", "30+")
+            st.metric("Subjects", f"{subjects_count}")
 
         st.write("")
 

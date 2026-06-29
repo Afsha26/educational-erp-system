@@ -45,18 +45,27 @@ def principal_panel():
 
     .sidebar-header{
         text-align:center;
-        padding:15px;
+        padding:8px 15px 6px;
+        margin-bottom:0;
+    }
+
+    .sidebar-header h1{
+        margin:0;
+        font-size:32px;
+        line-height:1.1;
     }
 
     .sidebar-title{
         color:white;
         font-size:24px;
         font-weight:bold;
+        margin:0;
     }
 
     .sidebar-subtitle{
         color:#F3EEF1;
         font-size:14px;
+        margin:0;
     }
 
     .profile-card{
@@ -120,7 +129,8 @@ def principal_panel():
 
         </div>
         """)
-
+        cols = st.columns([1, 2, 1])
+        cols[1].image("assets/logo.png", width=180)
         st.html(f"""
         <div class="profile-card">
 
