@@ -51,15 +51,35 @@ def teacher_queries(user_id):
         conn
     )
 
+    status_filter = st.selectbox(
+        "Filter Queries",
+        ["All", "Pending", "Replied"],
+        key="teacher_query_status_filter"
+    )
+
+    filtered_queries_df = queries_df.copy()
+
+    if status_filter == "Pending":
+        filtered_queries_df = filtered_queries_df[
+            filtered_queries_df["teacher_reply"].isna()
+            | filtered_queries_df["teacher_reply"].astype(str).str.strip().eq("")
+        ]
+    elif status_filter == "Replied":
+        filtered_queries_df = filtered_queries_df[
+            filtered_queries_df["teacher_reply"].notna()
+            & filtered_queries_df["teacher_reply"].astype(str).str.strip().ne("")
+        ]
+
     # ==================================
     # STATISTICS
     # ==================================
 
-    total_queries = len(queries_df)
+    total_queries = len(filtered_queries_df)
 
     pending_queries = len(
-        queries_df[
-            queries_df["teacher_reply"].isna()
+        filtered_queries_df[
+            filtered_queries_df["teacher_reply"].isna()
+            | filtered_queries_df["teacher_reply"].astype(str).str.strip().eq("")
         ]
     )
 
@@ -93,10 +113,10 @@ def teacher_queries(user_id):
     # NO DATA
     # ==================================
 
-    if queries_df.empty:
+    if filtered_queries_df.empty:
 
         st.info(
-            "No student queries available."
+            "No student queries available for the selected filter."
         )
 
         conn.close()
@@ -110,7 +130,7 @@ def teacher_queries(user_id):
         "📨 Student Questions"
     )
 
-    for _, row in queries_df.iterrows():
+    for _, row in filtered_queries_df.iterrows():
 
         replied = (
             pd.notna(row["teacher_reply"])

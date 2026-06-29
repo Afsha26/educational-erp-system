@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 
-def teacher_syllabus(user_id):
+def teacher_syllabus(user_id: int):
 
     conn = sqlite3.connect("database/erp.db")
 
@@ -12,23 +12,8 @@ def teacher_syllabus(user_id):
     # GET TEACHER ID
     # ==================================
 
-    teacher_df = pd.read_sql_query(
-        """
-        SELECT teacher_id
-        FROM teachers
-        WHERE user_id=?
-        """,
-        conn,
-        params=(user_id,)
-    )
-
-    if teacher_df.empty:
-        st.error("Teacher not found.")
-        conn.close()
-        return
-
-    teacher_id = teacher_df.iloc[0]["teacher_id"]
-
+    
+    teacher_id=st.session_state.teacher_id
     # ==================================
     # HEADER
     # ==================================
