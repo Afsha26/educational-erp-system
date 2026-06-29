@@ -167,9 +167,9 @@ def hod_announcements(user_id):
         for _, row in announcements_df.iterrows():
 
             role_color = {
-                "Teacher": "#4CAF50",
-                "HOD": "#FF9800",
-                "Principal": "#F44336"
+                "Teacher": "#774CAF",
+                "HOD": "#9900FF",
+                "Principal": "#D436F4"
             }.get(
                 row["creator_role"],
                 "#58339C"

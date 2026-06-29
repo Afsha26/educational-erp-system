@@ -46,7 +46,6 @@ def teacher_dashboard():
         conn,
         params=(teacher_id,)
     )
-    st.write(teacher_id)
     subject_count = len(subject_df)
 
     # Pending Queries

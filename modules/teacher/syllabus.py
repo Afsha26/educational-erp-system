@@ -20,7 +20,11 @@ def teacher_syllabus(user_id: int):
 
     st.html("""
     <div style="
-        background:linear-gradient(135deg,#58339C,#9043B7);
+        background:linear-gradient(
+            135deg,
+            #58339C,
+            #9043B7
+        );
         color:white;
         padding:25px;
         border-radius:20px;
