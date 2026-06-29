@@ -17,11 +17,13 @@ from modules.principal.dashboard import principal_dashboard
 from modules.teacher.teacher_panel import teacher_panel
 
 from database.admin_rec import create_default_principal
+from database.init_db import init_db
+from database.sample_data import sample_data
 
 
-
+init_db()
 create_default_principal()
-
+#sample_data()
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
