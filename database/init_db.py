@@ -1,16 +1,16 @@
 import sqlite3
+import os
 
-# ==========================
-# Database Connection
-# ==========================
+DATABASE_PATH = "database/erp.db"
 
-conn = sqlite3.connect("database/erp.db")
 
-# Enable Foreign Keys
-conn.execute("PRAGMA foreign_keys = ON")
-
-cursor = conn.cursor()
 def init_db():
+    os.makedirs("database", exist_ok=True)
+
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
     # ==========================
     # Users Table
     # ==========================
@@ -203,3 +203,7 @@ def init_db():
     conn.close()
 
     print("ERP Database Created Successfully")
+
+
+if __name__ == "__main__":
+    init_db()

@@ -1,33 +1,38 @@
+import os
 import random
 import sqlite3
 from datetime import date, timedelta
 
 random.seed(42)
+DATABASE_PATH = "database/erp.db"
 
-conn = sqlite3.connect("database/erp.db")
-conn.execute("PRAGMA foreign_keys = ON")
-cursor = conn.cursor()
 
-# ==========================
-# CLEAR EXISTING SAMPLE DATA
-# ==========================
-
-cursor.execute("DELETE FROM attendance")
-cursor.execute("DELETE FROM lectures")
-cursor.execute("DELETE FROM student_queries")
-cursor.execute("DELETE FROM announcements")
-cursor.execute("DELETE FROM subjects")
-cursor.execute("DELETE FROM principals")
-cursor.execute("DELETE FROM hods")
-cursor.execute("DELETE FROM teachers")
-cursor.execute("DELETE FROM students")
-cursor.execute("DELETE FROM users")
-conn.commit()
 def sample_data():
+    os.makedirs("database", exist_ok=True)
+
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
+    # ==========================
+    # CLEAR EXISTING SAMPLE DATA
+    # ==========================
+
+    cursor.execute("DELETE FROM attendance")
+    cursor.execute("DELETE FROM lectures")
+    cursor.execute("DELETE FROM student_queries")
+    cursor.execute("DELETE FROM announcements")
+    cursor.execute("DELETE FROM subjects")
+    cursor.execute("DELETE FROM principals")
+    cursor.execute("DELETE FROM hods")
+    cursor.execute("DELETE FROM teachers")
+    cursor.execute("DELETE FROM students")
+    cursor.execute("DELETE FROM users")
+    conn.commit()
+
     # ==========================
     # SAMPLE DATA INSERTION
     # ==========================
-    # The sample data insertion code goes here (the rest of the code remains unchanged)
     # ==========================
     # CONFIGURATION
     # ==========================
@@ -179,7 +184,6 @@ def sample_data():
 
     student_records = []
     student_user_records = []
-    student_counter = 1
     for department in departments:
         for semester in semesters:
             for index in range(10):
@@ -200,7 +204,6 @@ def sample_data():
                         f"{first_name.lower()}.{last_name.lower()}@college.edu",
                     )
                 )
-                student_counter += 1
 
     for username, password, role in student_user_records:
         cursor.execute("INSERT INTO users(username, password, role) VALUES (?, ?, ?)", (username, password, role))
