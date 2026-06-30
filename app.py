@@ -24,33 +24,32 @@ from database.sample_data import sample_data
 if "db_setup_completed" not in st.session_state:
     st.session_state.db_setup_completed = False
 
-if not st.session_state.db_setup_completed:
-    if "db_setup_choice" not in st.session_state:
-        st.session_state.db_setup_choice = "Create empty database with default principal"
-
-    setup_choice = st.sidebar.radio(
-        "Database setup",
-        [
-            "Create empty database with default principal",
-            "Load sample ERP system",
-        ],
-        key="db_setup_choice",
-    )
-
-    if st.sidebar.button("Initialize database"):
-        init_db()
-
-        if setup_choice == "Create empty database with default principal":
-            create_default_principal()
-        else:
-            sample_data()
-
-        st.session_state.db_setup_completed = True
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
+    if not st.session_state.db_setup_completed:
+        if "db_setup_choice" not in st.session_state:
+            st.session_state.db_setup_choice = "Create empty database with default principal"
+
+        setup_choice = st.sidebar.radio(
+            "Database setup",
+            [
+                "Create empty database with default principal",
+                "Load sample ERP system",
+            ],
+            key="db_setup_choice",
+        )
+
+        if st.sidebar.button("Initialize database"):
+            init_db()
+
+            if setup_choice == "Create empty database with default principal":
+                create_default_principal()
+            else:
+                sample_data()
+
+            st.session_state.db_setup_completed = True
 
     login_page()
 
